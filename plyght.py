@@ -147,7 +147,7 @@ def parse_2d_pt_list(pts):
     return grid
 
 
-# Save the current figure to the provided filename
+# Save the current figure to the provided filename. Format is inferred from extension.
 # Str -> IO ()
 def print_graph(filename):
     if filename is not None:

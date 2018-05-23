@@ -1,6 +1,33 @@
 -- LuaJIT interface to the Plyght plotting server
 -- All of the main plotting functions return the Plyght table so they can be
 -- chained as per the builder pattern.
+
+-- For each subplot, the line or imshow should be the last command issued before
+-- the next .plot() or final end_frame(). i.e. styling should be provided before
+-- the data. Legend however should be called last. This will be easiest to see
+-- from examples
+
+-- e.g. 
+-- x = {0, 0.2, 0.4, 0.6, 0.8, 1.0}
+-- y = {}
+-- y2 = {}
+-- for i = 1,#x do 
+--     x[i] = x[i] * math.pi 
+--     y[i] = math.sin(x[i])
+--     y2[i] = (math.sin(x[i]))^2
+-- end
+-- Plyght:start_frame()
+--       :plot()
+--       :line_style('+r')
+--       :line_label('Sine')
+--       :line(x, y)
+--       :line_style('--b')
+--       :line_label('SineSquared')
+--       :line(x, y2)
+--       :legend()
+--       :end_frame()
+
+
 local ffi = require('ffi')
 ffi.cdef[[
     static const int SOMAXCONN = 128;
@@ -162,6 +189,7 @@ function plyght:line(xs, ys, len)
    return self
 end
 
+-- Plot a 2D image, dimensions required
 function plyght:imshow(mat, xDim, yDim)
     if not self:init() then
         return self
@@ -181,6 +209,7 @@ function plyght:imshow(mat, xDim, yDim)
     return self
 end
 
+-- Add a colourbar next to a 2D image.
 function plyght:colorbar()
     if not self:init() then
         return self
@@ -190,6 +219,7 @@ function plyght:colorbar()
     return self
 end
 
+-- Matlab style line format specifier (as a string)
 function plyght:line_style(style)
    if not self:init() then
       return self
@@ -199,6 +229,7 @@ function plyght:line_style(style)
    return self
 end
 
+-- Label for line in legend (string)
 function plyght:line_label(label)
    if not self:init() then
       return self
@@ -208,6 +239,7 @@ function plyght:line_label(label)
    return self
 end
 
+-- Add a subplot to the figure
 function plyght:plot()
    if not self:init() then
       return self
@@ -217,6 +249,7 @@ function plyght:plot()
    return self
 end
 
+-- Specify plot type as a string see plyght.py for options
 function plyght:plot_type(plotType)
    if not self:init() then
       return self
@@ -226,6 +259,7 @@ function plyght:plot_type(plotType)
    return self
 end
 
+-- Title of subplot as a string
 function plyght:title(title)
    if not self:init() then
       return self
@@ -235,6 +269,7 @@ function plyght:title(title)
    return self
 end
 
+-- x-axis label of subplot as a string
 function plyght:x_label(title)
    if not self:init() then
       return self
@@ -244,6 +279,7 @@ function plyght:x_label(title)
    return self
 end
 
+-- y-axis label of subplot as a string
 function plyght:y_label(title)
    if not self:init() then
       return self
@@ -253,6 +289,7 @@ function plyght:y_label(title)
    return self
 end
 
+-- Legend with optional location string (see plyght.py) 
 function plyght:legend(location)
    if not self:init() then
       return self
@@ -263,6 +300,7 @@ function plyght:legend(location)
    return self
 end
 
+-- Save to provided filename (relative to python interpreter). Format inferred from extension.
 function plyght:print(file)
    if not self:init() then
       return self
@@ -272,6 +310,7 @@ function plyght:print(file)
    return self
 end
 
+-- Set x-range on current subplot
 function plyght:x_range(min, max)
    if not self:init() then
       return self
@@ -281,6 +320,7 @@ function plyght:x_range(min, max)
    return self
 end
 
+-- Set y-range on current subplot
 function plyght:y_range(min, max)
    if not self:init() then
       return self
