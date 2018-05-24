@@ -1,3 +1,7 @@
+-- Plyght.lua
+-- (c) Chris Osborne 2016-2018
+-- MIT License: https://opensource.org/licenses/MIT
+---------------------------------------------------------------------------------
 -- LuaJIT interface to the Plyght plotting server
 -- All of the main plotting functions return the Plyght table so they can be
 -- chained as per the builder pattern.

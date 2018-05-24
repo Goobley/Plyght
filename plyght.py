@@ -1,8 +1,10 @@
 ## plyght.py
 #  (c) Chris Osborne 2016-2018
 #  MIT License: https://opensource.org/licenses/MIT
+#--------------------------------------------------------------------------------------
 #  A Python based server that acts as an interface to the state-based matplotlib.pyplot
-#  Plyght therefore allows any programming language with a socket interface and formatted IO to plot to matplotlib.
+#  Plyght therefore allows any programming language with a socket interface and
+#  formatted IO to plot to matplotlib.
 
 import socket
 import numpy as np
