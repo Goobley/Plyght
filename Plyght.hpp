@@ -32,6 +32,8 @@
 //         .line(x, y2)
 //         .legend()
 //         .end_frame()
+#if !defined(PLYGHT_H)
+#define PLYGH_H
 #include <unistd.h>
 #include <cassert>
 #include <cstdio>
@@ -226,3 +228,5 @@ static Plyght& plyght()
     static Plyght p;
     return p;
 }
+#else
+#endif
