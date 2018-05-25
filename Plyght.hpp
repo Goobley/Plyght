@@ -22,7 +22,7 @@
 //     y.emplace_back(sin(x[i]))
 //     y2.emplace_back(y[i] * y[i]);
 // end
-// Plyght().start_frame()
+// plyght().start_frame()
 //         .plot()
 //         .line_style("+r")
 //         .line_label("Sine")
