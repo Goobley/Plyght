@@ -33,7 +33,7 @@
 //         .legend()
 //         .end_frame()
 #if !defined(PLYGHT_H)
-#define PLYGH_H
+#define PLYGHT_H
 #include <unistd.h>
 #include <cassert>
 #include <cstdio>
