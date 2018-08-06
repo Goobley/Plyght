@@ -31,7 +31,7 @@ StartBufferOp = '!!StartIBuf'
 
 # Start another 2D plot on the current incomplete figure.
 New2DPlotOp = '!!New2D'
-# Plot a 2D image on the current figure.
+# Plot a 2D image on the current figure. Takes 2 optional values to set the limits of the normalisation range
 ImShowOp = '!!ImShow'
 # Indicates the start and end of a list of points.
 StartPtListOp = '!!StartPts'
@@ -72,6 +72,12 @@ ColorbarOp = '!!Colorbar'
 DimensionOp = '!!Dimension<'
 # Contains a single value, typically 64-bit float.
 ValueOp = '!!Value<'
+# "Page Size"
+FigSizeOp = '!!FigSize<'
+# DPI
+DpiOp = '!!Dpi<'
+# Colormap
+ColormapOp = '!!Colormap<'
 
 
 # Calculate subplot grid layout -- biased towards producing columns over rows.
@@ -98,10 +104,10 @@ def subplot_grid_dims(num_plots):
             else:
                 return (grid_height + 1, grid_width + 1)  # This has to be big enough
         else:
-            if grid_height * (grid_width + 1) >= num_plots:
-                return (grid_height, grid_width + 1)
-            elif (grid_height + 1) * grid_width >= num_plots:
+            if (grid_height + 1) * grid_width >= num_plots:
                 return (grid_height + 1, grid_width)
+            elif grid_height * (grid_width + 1) >= num_plots:
+                return (grid_height, grid_width + 1)
             else:
                 return (grid_height + 1, grid_width + 1)  # This has to be big enough
 
@@ -151,9 +157,11 @@ def parse_2d_pt_list(pts):
 
 # Save the current figure to the provided filename. Format is inferred from extension.
 # Str -> IO ()
-def print_graph(filename):
+def print_graph(filename, dpi):
+    if dpi is None:
+        dpi = 100
     if filename is not None:
-        plt.savefig(filename)
+        plt.savefig(filename, dpi=dpi)
 
 
 # Set the x and y ranges of the current plot
@@ -188,7 +196,7 @@ def process_frame(f):
         plt.subplot(grid_rows, grid_cols, i+1)
         # Create empty "style" dict.
         next_style = {'Plot': None, 'Line': None, 'Label': None, 'Print': None, 'XRange': None,
-                      'YRange': None, 'Colorbar': None}
+                      'YRange': None, 'Colorbar': None, 'Dpi': None, 'Colormap': 'plasma', 'ImShowMin': None, 'ImShowMax': None}
         # Loop over all instructions relating to this subplot.
         while inst != New2DPlotOp:
 
@@ -198,11 +206,11 @@ def process_frame(f):
                 # Find end of current point list
                 endPtListIdx = f[idx:].index(EndPtListOp) + idx
 
-                # If this is a 2D plot then parse list and use imshow with optional colourbar.
+                # If this is a 2D plot then parse list and use imshow with optional colorbar.
                 if next_style['Plot'] == 'imshow':
                     # 2D image plot
                     data = parse_2d_pt_list(f[idx:endPtListIdx+1])
-                    plt.imshow(data, cmap='plasma', origin='lower')
+                    plt.imshow(data, cmap=next_style['Colormap'], origin='lower', vmin=next_style['ImShowMin'], vmax=next_style['ImShowMax'])
                     if next_style['Colorbar'] is not None:
                         plt.colorbar()
 
@@ -245,7 +253,9 @@ def process_frame(f):
 
             if inst.startswith(TitleOp):
                 title = re.match('^!!Title<([^>]*)>$', inst).group(1)
+                title = title.replace('!!n', '\n')
                 print(title)
+
                 plt.title(title)
 
             if inst.startswith(XTitleOp):
@@ -258,6 +268,7 @@ def process_frame(f):
 
             if inst.startswith(SupTitleOp):
                 sup_title = re.match('^!!SupTitle<([^>]*)>$', inst).group(1)
+                sup_title = sup_title.replace('!!n', '\n')
                 plt.suptitle(sup_title)
 
             if inst.startswith(LabelOp):
@@ -285,6 +296,21 @@ def process_frame(f):
 
             if inst.startswith(ImShowOp):
                 next_style['Plot'] = 'imshow'
+                lims = re.match('^!!ImShow<([^,>]*),([^,>]*)>$', inst)
+                if lims is not None:
+                    next_style['ImShowMin'] = float(lims.group(1))
+                    next_style['ImShowMax'] = float(lims.group(2))
+
+
+            if inst.startswith(FigSizeOp):
+                size = re.match('^!!FigSize<([^,>]*),([^,>]*)>$', inst)
+                plt.gcf().set_size_inches(float(size.group(1)), float(size.group(2)))
+
+            if inst.startswith(DpiOp):
+                next_style['Dpi'] = int(re.match('^!!Dpi<([^>]*)>$', inst).group(1))
+
+            if inst.startswith(ColormapOp):
+                next_style['Colormap'] = re.match('^!!Colormap<([^>]*)>$', inst).group(1)
 
             if inst == EndBufferOp:
                 break
@@ -294,7 +320,7 @@ def process_frame(f):
 
         set_ranges(next_style['XRange'], next_style['YRange'])
     plt.tight_layout()
-    print_graph(next_style['Print'])
+    print_graph(next_style['Print'], next_style['Dpi'])
     # This seems to help matplotlib behave better -- not really sure why.
     plt.pause(0.00001)
 

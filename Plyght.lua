@@ -182,11 +182,16 @@ function plyght:line(xs, ys, len)
 end
 
 -- Plot a 2D image, dimensions required
-function plyght:imshow(mat, xDim, yDim)
+function plyght:imshow(mat, xDim, yDim, minVal, maxVal)
     if not self:init() then
         return self
     end
-    self:send('!!ImShow\n')
+    if minVal and maxVal then
+       self:send('!!ImShow<'..minVal..','..maxVal..'>\n')
+    else
+       self:send('!!ImShow\n')
+    end
+
 
     self:send('!!Dimension<'..xDim..','..yDim..'>\n')
     self:send('!!StartPts\n')
@@ -293,12 +298,25 @@ function plyght:legend(location)
 end
 
 -- Save to provided filename (relative to python interpreter). Format inferred from extension.
-function plyght:print(file)
+-- Optional DPI argument
+function plyght:print(file, dpi)
    if not self:init() then
       return self
    end
+   if dpi then
+      self:send('!!Dpi<'..dpi..'>\n')
+   end
 
    self:send('!!Print<'..file..'>\n')
+   return self
+end
+
+-- Set the figure (and interactive window size) in inches
+function plyght:fig_size(xSize, ySize)
+   if not self:init() then
+      return self
+   end
+   self:send('!!FigSize<'..xSize..','..ySize..'>\n')
    return self
 end
 
@@ -320,6 +338,16 @@ function plyght:y_range(min, max)
 
    self:send('!!YRange<'..min..','..max..'>\n')
    return self
+end
+
+-- Set the colormap (does not persist)
+function plyght:colormap(cmap)
+    if not self:init() then
+        return self
+    end
+
+    self:send('!!Colormap<'..cmap..'>\n')
+    return self
 end
 
 

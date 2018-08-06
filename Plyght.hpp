@@ -195,11 +195,25 @@ struct Plyght
         return *this;
     }
 
-    Plyght& print(const std::string& file)
+    Plyght& print(const std::string& file, int dpi = 0)
     {
         init_check();
         std::stringstream str;
+        if (dpi != 0)
+        {
+            str << "!!Dpi<" << dpi << ">\n";
+        }
         str << "!!Print<" << file << ">\n";
+        send(str.str());
+        return *this;
+    }
+
+    Plyght& fig_size(double xSize, double ySize)
+    {
+        init_check();
+        std::stringstream str;
+
+        str << "!!FigSize<" << xSize << "," << ySize << ">\n";
         send(str.str());
         return *this;
     }
@@ -218,6 +232,15 @@ struct Plyght
         init_check();
         std::stringstream str;
         str << "!!YRange<" << min << "," << max << ">\n";
+        send(str.str());
+        return *this;
+    }
+
+    Plyght& colormap(const std::string& cmap)
+    {
+        init_check();
+        std::stringstream str;
+        str << "!!Colormap<" << cmap << ">\n";
         send(str.str());
         return *this;
     }
