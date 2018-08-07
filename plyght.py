@@ -15,6 +15,7 @@ import time
 import select
 import sys
 import platform
+import json
 
 # The default Mac OS X backend doesn't support the non-blocking mode. So pick
 # another. I chose Qt5. This will impose an additional requirement to install
@@ -22,6 +23,7 @@ import platform
 if platform.system() == 'Darwin':
     matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
 # Constant Strings used as control commands.
 
@@ -78,6 +80,8 @@ FigSizeOp = '!!FigSize<'
 DpiOp = '!!Dpi<'
 # Colormap
 ColormapOp = '!!Colormap<'
+# Rectangle Patch. Takes areguments, lower left x, lower left y, width, height, rotation (deg), fill, json table of kwargs
+RectangleOp = '!!Rectangle<'
 
 
 # Calculate subplot grid layout -- biased towards producing columns over rows.
@@ -172,6 +176,15 @@ def set_ranges(x_range, y_range):
     if y_range is not None:
         plt.ylim(y_range)
 
+# Applies any patches -- points, rectangles etc. over the top of the graph
+def apply_patches(patches):
+    if len(patches) == 0:
+        return
+
+    for p in patches:
+        plt.gca().add_patch(p)
+
+
 # Function that does the majority of the work.
 # Processes a list of arguments that make up the description of a graph and plots the corresponding output.
 # [Str] -> IO ()
@@ -196,7 +209,8 @@ def process_frame(f):
         plt.subplot(grid_rows, grid_cols, i+1)
         # Create empty "style" dict.
         next_style = {'Plot': None, 'Line': None, 'Label': None, 'Print': None, 'XRange': None,
-                      'YRange': None, 'Colorbar': None, 'Dpi': None, 'Colormap': 'plasma', 'ImShowMin': None, 'ImShowMax': None}
+                      'YRange': None, 'Colorbar': None, 'Dpi': None, 'Colormap': 'plasma', 'ImShowMin': None, 'ImShowMax': None,
+                      'Patches': []}
         # Loop over all instructions relating to this subplot.
         while inst != New2DPlotOp:
 
@@ -213,6 +227,7 @@ def process_frame(f):
                     plt.imshow(data, cmap=next_style['Colormap'], origin='lower', vmin=next_style['ImShowMin'], vmax=next_style['ImShowMax'])
                     if next_style['Colorbar'] is not None:
                         plt.colorbar()
+                    next_style['Plot'] = None
 
                 else:
                     # Line plots
@@ -312,6 +327,14 @@ def process_frame(f):
             if inst.startswith(ColormapOp):
                 next_style['Colormap'] = re.match('^!!Colormap<([^>]*)>$', inst).group(1)
 
+            if inst.startswith(RectangleOp):
+                rect = re.match('^!!Rectangle<([^,>]*),([^,>]*),([^,>]*),([^,>]*),([^>]*)>$', inst)
+                xy  = (float(rect.group(1)), float(rect.group(2)))
+                width = float(rect.group(3))
+                height = float(rect.group(4))
+                kwargs = json.loads(rect.group(5))
+                next_style['Patches'].append(patches.Rectangle(xy, width, height, **kwargs))
+
             if inst == EndBufferOp:
                 break
 
@@ -319,6 +342,7 @@ def process_frame(f):
             inst = f[idx]
 
         set_ranges(next_style['XRange'], next_style['YRange'])
+    apply_patches(next_style['Patches'])
     plt.tight_layout()
     print_graph(next_style['Print'], next_style['Dpi'])
     # This seems to help matplotlib behave better -- not really sure why.

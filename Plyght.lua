@@ -350,6 +350,47 @@ function plyght:colormap(cmap)
     return self
 end
 
+local function dub_quote(s)
+    return '"'..tostring(s)..'"'
+end
+
+local function dub_quote_if_string(s)
+    if type(s) == 'string' then
+        return '"'..tostring(s)..'"'
+    else
+        return tostring(s)
+    end
+end
+
+local function table_to_json(t)
+    local j = '{'
+    local count = 1
+    for k, v in pairs(t) do
+        if not (type(v) == 'string' or type(v) == 'number' or type(v) == 'boolean') then
+            print(('invalid value: %s for key: %s'):format(tostring(v), tostring(k)))
+            return '{}'
+        end
+        if count > 1 then j = j .. ',' end
+        j = j .. dub_quote(k) .. ' : ' .. dub_quote_if_string(v)
+        count = count + 1
+    end
+    j = j ..'}'
+    return j
+end
+
+function plyght:rectangle(x, y, width, height, kwargs)
+    if not self:init() then
+        return self
+    end
+
+    if not fill then fill = true end
+    if not rotation then rotation = 0 end
+    if not kwargs then kwargs = '{}' else kwargs = table_to_json(kwargs) end
+    -- else handle converting a lua table to simple json
+    self:send('!!Rectangle<'..x..','..y..','..width..','..height..','..kwargs..'>\n')
+    return self
+end
+
 
 
 return plyght
