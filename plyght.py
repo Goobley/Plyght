@@ -42,6 +42,7 @@ EndPtListOp = '!!EndPts'
 PointOp = '!!Pt<'
 # Style of line, provided before drawing. Matlab style, i.e. '-', 'o', '--', 'x'...
 LineStyleOp = '!!Line<'
+LineStyleJsonOp = '!!LineJson<'
 
 # Axis types
 # Types are: linlin, semilogx, semilogy, loglog
@@ -236,22 +237,34 @@ def process_frame(f):
                     # There seems to be no better way of doing this, but at least there's only 4/5 cases.
                     if next_style['Plot'] is None or next_style['Plot'] == 'linlin':
                         if next_style['Line'] is not None:
-                            plt.plot(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            if type(next_style['Line']) is str:
+                                plt.plot(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            else:
+                                plt.plot(line[0], line[1], **next_style['Line'], label=next_style['Label'])
                         else:
                             plt.plot(line[0], line[1], label=next_style['Label'])
                     elif next_style['Plot'] == 'semilogx':
                         if next_style['Line'] is not None:
-                            plt.semilogx(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            if type(next_style['Line']) is str:
+                                plt.semilogx(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            else:
+                                plt.semilogx(line[0], line[1], **next_style['Line'], label=next_style['Label'])
                         else:
                             plt.semilogx(line[0], line[1], label=next_style['Label'])
                     elif next_style['Plot'] == 'semilogy':
                         if next_style['Line'] is not None:
-                            plt.semilogy(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            if type(next_style['Line']) is str:
+                                plt.semilogy(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            else:
+                                plt.semilogy(line[0], line[1], **next_style['Line'], label=next_style['Label'])
                         else:
                             plt.semilogy(line[0], line[1], label=next_style['Label'])
                     elif next_style['Plot'] == 'loglog':
                         if next_style['Line'] is not None:
-                            plt.loglog(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            if type(next_style['Line']) is str:
+                                plt.loglog(line[0], line[1], next_style['Line'], label=next_style['Label'])
+                            else:
+                                plt.loglog(line[0], line[1], **next_style['Line'], label=next_style['Label'])
                         else:
                             plt.loglog(line[0], line[1], label=next_style['Label'])
 
@@ -334,6 +347,10 @@ def process_frame(f):
                 height = float(rect.group(4))
                 kwargs = json.loads(rect.group(5))
                 next_style['Patches'].append(patches.Rectangle(xy, width, height, **kwargs))
+
+            if inst.startswith(LineStyleJsonOp):
+                style = re.match('^!!LineJson<([^>]*)>$', inst)
+                next_style['Line'] = json.loads(style.group(1))
 
             if inst == EndBufferOp:
                 break
