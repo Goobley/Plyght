@@ -1,5 +1,5 @@
 ## plyght.py
-#  (c) Chris Osborne 2016-2018
+#  (c) Chris Osborne 2016-2019
 #  MIT License: https://opensource.org/licenses/MIT
 #--------------------------------------------------------------------------------------
 #  A Python based server that acts as an interface to the state-based matplotlib.pyplot

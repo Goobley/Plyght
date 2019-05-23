@@ -1,5 +1,5 @@
 -- Plyght.lua
--- (c) Chris Osborne 2016-2018
+-- (c) Chris Osborne 2016-2019
 -- MIT License: https://opensource.org/licenses/MIT
 ---------------------------------------------------------------------------------
 -- LuaJIT interface to the Plyght plotting server
